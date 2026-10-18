@@ -500,6 +500,48 @@ h2 {
   font-size: 14px;
 }
 
+.install-top {
+  margin: -6px auto 16px;
+  padding: 9px 18px;
+  font-size: 15px;
+  border-color: var(--accent2);
+  box-shadow: 0 0 14px rgba(25, 240, 255, 0.35);
+}
+
+.install {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.install .help {
+  margin-top: 0;
+}
+
+.install-note {
+  margin: 10px 0 6px;
+}
+
+.install-steps ol {
+  margin: 0;
+  padding-left: 1.3em;
+  display: grid;
+  gap: 4px;
+}
+
+.install-steps p {
+  margin: 0;
+}
+
+.install-steps .ico {
+  display: inline-block;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
 .help summary {
   cursor: pointer;
   color: var(--text);

@@ -5,6 +5,7 @@ import { Input } from './input/input';
 import { LEVELS, type LevelDef } from './levels/levels';
 import { Stage } from './render/stage';
 import { TableView } from './render/tableView';
+import { setupInstallGuide } from './ui/install';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -382,6 +383,7 @@ function frame(now: number) {
   requestAnimationFrame(frame);
 }
 
+setupInstallGuide($('install'), $<HTMLDetailsElement>('install-help'), $('install-steps'), $<HTMLButtonElement>('btn-install'));
 loadLevel(0);
 showMenu();
 requestAnimationFrame(frame);
