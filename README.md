@@ -4,6 +4,15 @@
 
 線上遊玩：https://lonshaus.github.io/3d-pinball/
 
+## 安裝成 App（PWA）
+
+可以加到主畫面，以全螢幕開啟，第一次開啟後沒有網路也能玩。
+
+- **Android / 桌機 Chrome、Edge**：開啟網站後按「安裝」（網址列右側的安裝圖示，或瀏覽器選單裡的「安裝應用程式」）。
+- **iPhone / iPad**：用 Safari 開啟，按「分享」→「加入主畫面」。
+
+推出新版本後，App 會在背景自動更新，下次開啟就是新版。
+
 ## 開發
 
 ```bash
@@ -71,7 +80,10 @@ src/
 ├─ input/input.ts       # 鍵盤、觸控、搖動手機
 ├─ audio/sfx.ts         # Web Audio 合成音效
 └─ main.ts              # 介面與主迴圈
+public/icons/           # App 圖示（PWA）
 ```
+
+PWA 由 `vite-plugin-pwa` 產生 manifest 與 service worker（設定在 `vite.config.ts`），會預先快取整個遊戲。
 
 物理在檯面平面上以 2D 計算，畫面以 3D 呈現（檯面傾斜 6.5°）。坡道與上層平台用「層」來處理：
 球只會撞到同一層的東西，所以主檯面的球能從坡道底下穿過；在坡道上時依軌道高度計算爬坡減速，
