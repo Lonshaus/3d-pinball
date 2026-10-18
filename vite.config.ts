@@ -11,7 +11,8 @@ export default defineConfig({
     VitePWA({
       // New versions are fetched in the background and used on the next launch.
       registerType: 'autoUpdate',
-      includeAssets: ['icons/icon.svg', 'icons/apple-touch-icon.png'],
+      // The icons are already picked up by globPatterns below; don't add them a second time.
+      includeManifestIcons: false,
       manifest: {
         name: '3D 彈珠台',
         short_name: '彈珠台',
@@ -32,7 +33,8 @@ export default defineConfig({
       },
       workbox: {
         // Everything is generated in code, so caching the build output makes the game fully offline.
-        globPatterns: ['**/*.{js,css,html,png,svg,webmanifest}'],
+        // The plugin adds manifest.webmanifest to the precache itself.
+        globPatterns: ['**/*.{js,css,html,png,svg}'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
       },
     }),
