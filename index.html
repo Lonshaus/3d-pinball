@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#07021a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>3D 彈珠台</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='26' fill='%23d8dce4'/><circle cx='24' cy='22' r='8' fill='white'/></svg>" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="stage"></div>
+      <div id="touch"></div>
+
+      <header id="hud" class="hidden">
+        <div class="hud-left">
+          <div id="hud-level" class="hud-level"></div>
+          <div class="hud-balls" id="hud-balls"></div>
+        </div>
+        <div class="hud-center">
+          <div id="hud-score" class="hud-score">0</div>
+          <div class="hud-goal"><div id="hud-goal-bar"></div><span id="hud-goal-text"></span></div>
+        </div>
+        <div class="hud-right">
+          <div id="hud-mult" class="hud-mult">×1</div>
+          <button id="btn-mute" class="icon-btn" aria-label="靜音">🔊</button>
+          <button id="btn-pause" class="icon-btn" aria-label="暫停">⏸</button>
+        </div>
+      </header>
+
+      <div id="touch-hints" class="hidden">
+        <div class="hint left">點左半邊<br />左擋板</div>
+        <div class="hint right">點右半邊<br />右擋板</div>
+      </div>
+      <button id="btn-launch" class="hidden"><span class="launch-fill"></span><span class="launch-label">按住蓄力<br />放開發射</span></button>
+      <div id="toast"></div>
+      <div id="popups"></div>
+
+      <section id="menu" class="overlay">
+        <div class="panel menu-panel">
+          <h1 class="logo"><span>3D</span> 彈珠台</h1>
+          <p class="tagline">達成目標分數即可解鎖下一關</p>
+          <div id="level-list" class="level-list"></div>
+          <details class="help">
+            <summary>操作說明</summary>
+            <div class="help-grid">
+              <div><b>電腦</b></div>
+              <div>左擋板：<kbd>Z</kbd> / <kbd>←</kbd> / <kbd>左 Shift</kbd></div>
+              <div>右擋板：<kbd>/</kbd> / <kbd>→</kbd> / <kbd>右 Shift</kbd></div>
+              <div>發射：按住 <kbd>空白鍵</kbd> 蓄力，放開發射</div>
+              <div>搖台：<kbd>X</kbd> 左推 <kbd>C</kbd> 上推 <kbd>N</kbd> 右推（太用力會 TILT）</div>
+              <div>暫停：<kbd>Esc</kbd> / <kbd>P</kbd></div>
+              <div><b>手機 / 平板</b></div>
+              <div>點螢幕左半邊、右半邊控制擋板，按住右下角按鈕蓄力發射</div>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section id="pause" class="overlay hidden">
+        <div class="panel small">
+          <h2>暫停</h2>
+          <button class="btn primary" id="btn-resume">繼續遊戲</button>
+          <button class="btn" id="btn-restart">重新開始本關</button>
+          <button class="btn" id="btn-menu">回到選單</button>
+        </div>
+      </section>
+
+      <section id="result" class="overlay hidden">
+        <div class="panel small">
+          <h2 id="result-title"></h2>
+          <div class="result-score" id="result-score"></div>
+          <div class="result-best" id="result-best"></div>
+          <button class="btn primary" id="btn-next"></button>
+          <button class="btn" id="btn-retry">再玩一次</button>
+          <button class="btn" id="btn-menu2">回到選單</button>
+        </div>
+      </section>
+
+      <div id="rotate-hint" class="hidden">把裝置轉成直向會更好玩 📱</div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
