@@ -11,18 +11,17 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 
 // ---------- persistence ----------
 interface Save {
-  unlocked: number;
   best: number[];
 }
 const SAVE_KEY = 'pinball3d.v1';
 function loadSave(): Save {
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_KEY) ?? '') as Save;
-    if (typeof s.unlocked === 'number' && Array.isArray(s.best)) return s;
+    if (Array.isArray(s.best)) return { best: s.best };
   } catch {
     /* ignore */
   }
-  return { unlocked: 0, best: [] };
+  return { best: [] };
 }
 const save = loadSave();
 function persist() {
@@ -133,15 +132,13 @@ function buildLevelList() {
   list.innerHTML = '';
   const hex = (n: number) => '#' + n.toString(16).padStart(6, '0');
   LEVELS.forEach((lv, i) => {
-    const locked = i > save.unlocked;
     const btn = document.createElement('button');
     btn.className = 'level-card';
-    btn.disabled = locked;
-    btn.style.setProperty('--c1', hex(lv.theme.background));
-    btn.style.setProperty('--c2', hex(lv.theme.bumperBody));
+    btn.style.setProperty('--c1', lv.theme.card[0]);
+    btn.style.setProperty('--c2', lv.theme.card[1]);
     btn.style.setProperty('--glow', hex(lv.theme.accent));
     btn.innerHTML = `
-      <div class="num">${locked ? '🔒' : i + 1}</div>
+      <div class="num">${i + 1}</div>
       <div><div class="name">${lv.name}</div><div class="sub">${lv.subtitle}</div></div>
       <div class="meta">目標 ${lv.goal.toLocaleString()}<br/>最高 ${(save.best[i] ?? 0).toLocaleString()}</div>`;
     btn.addEventListener('click', () => {
@@ -150,7 +147,7 @@ function buildLevelList() {
     });
     // Preview the table behind the menu on hover.
     btn.addEventListener('pointerenter', () => {
-      if (!locked && inMenu && levelIndex !== i) loadLevel(i);
+      if (inMenu && levelIndex !== i) loadLevel(i);
     });
     list.appendChild(btn);
   });
@@ -201,7 +198,6 @@ function finish(cleared: boolean) {
   const i = levelIndex;
   const isNewBest = game.score > (save.best[i] ?? 0);
   if (isNewBest) save.best[i] = game.score;
-  if (cleared && i + 1 < LEVELS.length) save.unlocked = Math.max(save.unlocked, i + 1);
   persist();
   launchBtn.classList.add('hidden');
   setTimeout(
@@ -356,6 +352,6 @@ function frame(now: number) {
   requestAnimationFrame(frame);
 }
 
-loadLevel(Math.min(save.unlocked, LEVELS.length - 1));
+loadLevel(0);
 showMenu();
 requestAnimationFrame(frame);

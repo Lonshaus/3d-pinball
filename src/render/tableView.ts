@@ -9,6 +9,8 @@ import {
   BALL_START,
   FIELD_LEFT,
   FIELD_RIGHT,
+  FLIPPER_PIVOT,
+  guideLine,
   LANE_RIGHT,
   LANE_Y0,
   WALL_R,
@@ -185,7 +187,7 @@ export class TableView {
         map: tex,
         emissive: 0xffffff,
         emissiveMap: tex,
-        emissiveIntensity: 0.22,
+        emissiveIntensity: theme.floorGlow ?? 0.22,
         roughness: 0.32,
         metalness: 0.15,
       }),
@@ -241,13 +243,17 @@ export class TableView {
     trims.push(extrude(arcTrim, 1.6, 1.66, 64));
 
     // Bottom apron and the dead zones under the inlane guides.
+    const [la, lb] = guideLine(false);
+    const [ra, rb] = guideLine(true);
     const apron = new THREE.Shape();
-    apron.moveTo(FIELD_LEFT - WALL_R, 10);
-    apron.lineTo(-3.9, 5.2);
-    apron.lineTo(-3.9, 1.0);
-    apron.lineTo(3.9, 1.0);
-    apron.lineTo(3.9, 5.2);
-    apron.lineTo(FIELD_RIGHT, 10);
+    apron.moveTo(FIELD_LEFT - WALL_R, la.y);
+    apron.lineTo(lb.x, lb.y);
+    apron.lineTo(-FLIPPER_PIVOT.x, FLIPPER_PIVOT.y);
+    apron.lineTo(-FLIPPER_PIVOT.x, 1.0);
+    apron.lineTo(FLIPPER_PIVOT.x, 1.0);
+    apron.lineTo(FLIPPER_PIVOT.x, FLIPPER_PIVOT.y);
+    apron.lineTo(rb.x, rb.y);
+    apron.lineTo(FIELD_RIGHT, ra.y);
     apron.lineTo(FIELD_RIGHT, y0 - 0.6);
     apron.lineTo(FIELD_LEFT - WALL_R, y0 - 0.6);
     apron.closePath();

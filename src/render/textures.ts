@@ -258,7 +258,306 @@ const lava: Painter = (ctx, w, h, level, rand) => {
   title(ctx, w, h, level, '#fff1d6', t.floorAccent);
 };
 
-const PAINTERS: Record<LevelDef['theme']['floorStyle'], Painter> = { neon, ocean, lava };
+const nightmarket: Painter = (ctx, w, h, level, rand) => {
+  const t = level.theme;
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#120404');
+  g.addColorStop(0.5, t.floorBase);
+  g.addColorStop(1, '#3a120c');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+
+  // Tiled pavement.
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,190,120,0.08)';
+  ctx.lineWidth = 2;
+  const tile = w / 14;
+  for (let y = 0; y < h; y += tile) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+    const off = (Math.round(y / tile) % 2) * tile * 0.5;
+    for (let x = off; x < w; x += tile) {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x, y + tile);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  const p = px(w, h);
+  // Strings of red lanterns.
+  const lanternRow = (y: number, sag: number) => {
+    const [x0, y0] = p(-9.5, y);
+    const [x1] = p(11, y);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,210,150,0.45)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.quadraticCurveTo((x0 + x1) / 2, y0 + sag, x1, y0);
+    ctx.stroke();
+    for (let i = 1; i < 9; i++) {
+      const u = i / 9;
+      const x = x0 + (x1 - x0) * u;
+      const yy = y0 + sag * 2 * u * (1 - u) + 14;
+      ctx.shadowColor = t.floorAccent;
+      ctx.shadowBlur = 26;
+      const lg = ctx.createRadialGradient(x - 4, yy - 4, 2, x, yy, 18);
+      lg.addColorStop(0, '#ffd27a');
+      lg.addColorStop(0.45, '#ff3b30');
+      lg.addColorStop(1, '#8a0f0f');
+      ctx.fillStyle = lg;
+      ctx.beginPath();
+      ctx.ellipse(x, yy, 15, 19, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#ffcc33';
+      ctx.fillRect(x - 7, yy - 22, 14, 4);
+      ctx.fillRect(x - 7, yy + 18, 14, 4);
+      ctx.fillRect(x - 1, yy + 22, 2, 10);
+    }
+    ctx.restore();
+  };
+  lanternRow(38.5, 40);
+  lanternRow(31, 60);
+
+  // Stall signs.
+  const signs = ['珍珠奶茶', '大雞排', '臭豆腐', '蚵仔煎', '夾娃娃', '射氣球', '烤香腸', '刈包'];
+  const colors = ['#ff3b30', '#ffcc33', '#4dd2ff', '#ff5fd2', '#7dff6a'];
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i < signs.length; i++) {
+    const left = i % 2 === 0;
+    // Right column starts lower so the claw-machine saucer doesn't cover a sign.
+    const [x, y] = p(left ? -7.4 + rand() * 0.6 : 6.0 + rand() * 0.4, (left ? 26 : 23.2) - Math.floor(i / 2) * 3.0);
+    const c = colors[Math.floor(rand() * colors.length)];
+    const bw = w * 0.15;
+    const bh = w * 0.055;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.strokeStyle = c;
+    ctx.lineWidth = 3;
+    ctx.shadowColor = c;
+    ctx.shadowBlur = 16;
+    ctx.beginPath();
+    ctx.roundRect(x - bw / 2, y - bh / 2, bw, bh, 8);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = c;
+    ctx.font = `900 ${bh * 0.55}px "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif`;
+    ctx.fillText(signs[i], x, y + 1);
+  }
+  ctx.restore();
+
+  // Warm bokeh from the stalls.
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 70; i++) {
+    const x = rand() * w;
+    const y = rand() * h;
+    const r = 6 + rand() * 18;
+    const bg = ctx.createRadialGradient(x, y, 0, x, y, r);
+    bg.addColorStop(0, `rgba(255,${150 + rand() * 80},80,0.18)`);
+    bg.addColorStop(1, 'rgba(255,120,60,0)');
+    ctx.fillStyle = bg;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  ctx.restore();
+
+  title(ctx, w, h, level, '#fff4d6', t.floorAccent);
+};
+
+const candy: Painter = (ctx, w, h, level, rand) => {
+  const t = level.theme;
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#8fdcf5');
+  g.addColorStop(0.45, t.floorBase);
+  g.addColorStop(1, '#ffd98f');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+
+  // Polka dots.
+  for (let i = 0; i < 160; i++) {
+    ctx.fillStyle = `rgba(255,255,255,${0.2 + rand() * 0.2})`;
+    ctx.beginPath();
+    ctx.arc(rand() * w, rand() * h, 4 + rand() * 9, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const p = px(w, h);
+  // Lollipop swirls.
+  const lollipop = (x: number, y: number, r: number, c1: string, c2: string) => {
+    const [cx, cy] = p(x, y);
+    const rr = (r / (FLOOR_BOUNDS.x1 - FLOOR_BOUNDS.x0)) * w;
+    ctx.save();
+    ctx.fillStyle = '#f7f0e6';
+    ctx.fillRect(cx - 4, cy, 8, rr * 2.2);
+    ctx.fillStyle = c1;
+    ctx.beginPath();
+    ctx.arc(cx, cy, rr, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = c2;
+    ctx.lineWidth = rr * 0.18;
+    ctx.beginPath();
+    for (let a = 0; a < Math.PI * 7; a += 0.1) {
+      const r2 = (a / (Math.PI * 7)) * rr * 0.92;
+      const x2 = cx + Math.cos(a) * r2;
+      const y2 = cy + Math.sin(a) * r2;
+      if (a === 0) ctx.moveTo(x2, y2);
+      else ctx.lineTo(x2, y2);
+    }
+    ctx.stroke();
+    ctx.restore();
+  };
+  lollipop(-6.6, 33, 1.6, '#ff5fa2', '#ffffff');
+  lollipop(7.4, 30, 1.3, '#5fd6c8', '#ffffff');
+  lollipop(-6.8, 19.5, 1.1, '#a77bff', '#fff27a');
+  lollipop(6.8, 13.5, 1.2, '#fff27a', '#ff5fa2');
+
+  // Candy-cane stripes along the bottom.
+  ctx.save();
+  const [, by] = p(0, 4.5);
+  ctx.beginPath();
+  ctx.rect(0, by, w, h - by);
+  ctx.clip();
+  for (let x = -h; x < w + h; x += 46) {
+    ctx.fillStyle = 'rgba(255,95,162,0.35)';
+    ctx.beginPath();
+    ctx.moveTo(x, h);
+    ctx.lineTo(x + 22, h);
+    ctx.lineTo(x + 22 + (h - by), by);
+    ctx.lineTo(x + (h - by), by);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // Sprinkles.
+  const cols = ['#ff5fa2', '#5fd6c8', '#fff27a', '#a77bff', '#ff9a4d'];
+  for (let i = 0; i < 420; i++) {
+    ctx.save();
+    ctx.translate(rand() * w, rand() * h);
+    ctx.rotate(rand() * Math.PI);
+    ctx.fillStyle = cols[Math.floor(rand() * cols.length)];
+    ctx.beginPath();
+    ctx.roundRect(-7, -2.5, 14, 5, 2.5);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Title with a chocolate outline so it reads on the bright floor.
+  const [cx, cy] = p(0, 14.5);
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = `900 ${w * 0.1}px "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif`;
+  ctx.lineWidth = 12;
+  ctx.strokeStyle = '#7a3b2e';
+  ctx.strokeText(level.name, cx, cy);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(level.name, cx, cy);
+  ctx.font = `700 ${w * 0.045}px "Orbitron", "Arial Black", sans-serif`;
+  ctx.fillStyle = t.floorAccent;
+  ctx.fillText(level.subtitle.split('').join(' '), cx, cy + w * 0.085);
+  ctx.restore();
+};
+
+const space: Painter = (ctx, w, h, level, rand) => {
+  const t = level.theme;
+  ctx.fillStyle = t.floorBase;
+  ctx.fillRect(0, 0, w, h);
+
+  // Nebula clouds.
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const nebula = ['rgba(138,92,255,', 'rgba(61,232,255,', 'rgba(255,92,200,'];
+  for (let i = 0; i < 26; i++) {
+    const x = rand() * w;
+    const y = rand() * h;
+    const r = w * (0.12 + rand() * 0.3);
+    const ng = ctx.createRadialGradient(x, y, 0, x, y, r);
+    const c = nebula[i % nebula.length];
+    ng.addColorStop(0, c + (0.1 + rand() * 0.12) + ')');
+    ng.addColorStop(1, c + '0)');
+    ctx.fillStyle = ng;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  ctx.restore();
+
+  // Stars.
+  for (let i = 0; i < 900; i++) {
+    const s = rand() < 0.94 ? 1 + rand() * 1.5 : 2.5 + rand() * 2;
+    ctx.fillStyle = `rgba(255,255,255,${0.4 + rand() * 0.6})`;
+    ctx.fillRect(rand() * w, rand() * h, s, s);
+  }
+
+  const p = px(w, h);
+  // Ringed planet.
+  const [plx, ply] = p(-5.6, 9.8);
+  const pr = w * 0.09;
+  ctx.save();
+  const pg = ctx.createRadialGradient(plx - pr * 0.4, ply - pr * 0.4, pr * 0.1, plx, ply, pr);
+  pg.addColorStop(0, '#ffd6a0');
+  pg.addColorStop(0.6, '#e0743a');
+  pg.addColorStop(1, '#4a1a10');
+  ctx.fillStyle = pg;
+  ctx.beginPath();
+  ctx.arc(plx, ply, pr, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,220,170,0.6)';
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.ellipse(plx, ply, pr * 1.8, pr * 0.45, -0.35, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  // Spiral galaxy around the top saucer.
+  const [gx, gy] = p(0.9, 33);
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (let arm = 0; arm < 2; arm++) {
+    for (let i = 0; i < 260; i++) {
+      const u = i / 260;
+      const a = arm * Math.PI + u * Math.PI * 3;
+      const r = 10 + u * w * 0.17;
+      const x = gx + Math.cos(a) * r + (rand() - 0.5) * 10;
+      const y = gy + Math.sin(a) * r * 0.75 + (rand() - 0.5) * 10;
+      ctx.fillStyle = `rgba(${150 + rand() * 100},${160 + rand() * 90},255,${0.5 * (1 - u)})`;
+      ctx.fillRect(x, y, 2.5, 2.5);
+    }
+  }
+  const core = ctx.createRadialGradient(gx, gy, 0, gx, gy, w * 0.07);
+  core.addColorStop(0, 'rgba(255,240,255,0.55)');
+  core.addColorStop(1, 'rgba(138,92,255,0)');
+  ctx.fillStyle = core;
+  ctx.fillRect(gx - w * 0.07, gy - w * 0.07, w * 0.14, w * 0.14);
+  ctx.restore();
+
+  // Constellation lines.
+  ctx.save();
+  ctx.strokeStyle = 'rgba(61,232,255,0.35)';
+  ctx.fillStyle = t.floorAccent2;
+  ctx.lineWidth = 1.5;
+  const [sx, sy] = p(5.5, 16);
+  let x = sx;
+  let y = sy;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  for (let i = 0; i < 6; i++) {
+    x += (rand() - 0.3) * 60;
+    y -= 20 + rand() * 40;
+    ctx.lineTo(x, y);
+    ctx.fillRect(x - 3, y - 3, 6, 6);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  title(ctx, w, h, level, '#f0ecff', t.floorAccent);
+};
+
+const PAINTERS: Record<LevelDef['theme']['floorStyle'], Painter> = { neon, ocean, lava, nightmarket, candy, space };
 
 export function makeFloorTexture(level: LevelDef, maxAniso: number): THREE.CanvasTexture {
   const w = 1024;

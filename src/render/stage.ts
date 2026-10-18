@@ -80,36 +80,47 @@ class Sparks {
   }
 }
 
-/** Slow, theme specific background particles: stars, bubbles or embers. */
+/** Slow, theme specific background particles (stars, bubbles, embers, lanterns, sprinkles). */
 class Ambient {
   readonly points: THREE.Points;
   private pos: Float32Array;
   private speed: Float32Array;
   private phase: Float32Array;
+  /** +1 rises, -1 falls, 0 static. */
+  private readonly dir: number;
 
   constructor(
     private readonly kind: Theme['ambientFx'],
-    color: number,
+    colors: number[],
     tex: THREE.Texture,
   ) {
-    const n = kind === 'stars' ? 700 : 260;
+    const n = { stars: 700, bubbles: 260, embers: 260, lanterns: 70, sprinkles: 320 }[kind];
+    this.dir = kind === 'stars' ? 0 : kind === 'sprinkles' ? -1 : 1;
     this.pos = new Float32Array(n * 3);
     this.speed = new Float32Array(n);
     this.phase = new Float32Array(n);
-    for (let i = 0; i < n; i++) this.respawn(i, true);
+    const col = new Float32Array(n * 3);
+    const c = new THREE.Color();
+    for (let i = 0; i < n; i++) {
+      this.respawn(i, true);
+      c.set(colors[Math.floor(Math.random() * colors.length)]);
+      col.set([c.r, c.g, c.b], i * 3);
+    }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(this.pos, 3));
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
     this.points = new THREE.Points(
       g,
       new THREE.PointsMaterial({
-        color,
-        size: kind === 'stars' ? 1.1 : kind === 'bubbles' ? 0.45 : 0.3,
+        vertexColors: true,
+        size: { stars: 1.1, bubbles: 0.45, embers: 0.3, lanterns: 1.1, sprinkles: 0.4 }[kind],
         fog: kind !== 'stars',
         map: tex,
         transparent: true,
         opacity: kind === 'bubbles' ? 0.55 : 0.9,
         depthWrite: false,
-        blending: THREE.AdditiveBlending,
+        // Additive glow disappears on bright backgrounds, so sprinkles blend normally.
+        blending: kind === 'sprinkles' ? THREE.NormalBlending : THREE.AdditiveBlending,
       }),
     );
     this.points.frustumCulled = false;
@@ -117,7 +128,7 @@ class Ambient {
 
   private respawn(i: number, initial: boolean) {
     const p = this.pos;
-    if (this.kind === 'stars') {
+    if (this.dir === 0) {
       // Far shell around the table.
       const a = Math.random() * Math.PI * 2;
       const r = 150 + Math.random() * 80;
@@ -126,23 +137,24 @@ class Ambient {
       p[i * 3 + 2] = Math.sin(a) * r - 20;
     } else {
       p[i * 3] = (Math.random() - 0.5) * 50;
-      p[i * 3 + 1] = initial ? Math.random() * 30 - 8 : -8;
+      p[i * 3 + 1] = initial ? Math.random() * 32 - 8 : this.dir > 0 ? -8 : 24;
       p[i * 3 + 2] = (Math.random() - 0.5) * 60 - 5;
     }
-    this.speed[i] = 0.6 + Math.random() * 1.6;
+    this.speed[i] = (0.6 + Math.random() * 1.6) * { stars: 0, bubbles: 1, embers: 1.6, lanterns: 0.5, sprinkles: 2.2 }[this.kind];
     this.phase[i] = Math.random() * 10;
   }
 
   update(dt: number, time: number) {
-    if (this.kind === 'stars') {
+    if (this.dir === 0) {
       this.points.rotation.y = time * 0.005;
       return;
     }
     const n = this.speed.length;
     for (let i = 0; i < n; i++) {
-      this.pos[i * 3 + 1] += this.speed[i] * dt * (this.kind === 'embers' ? 1.6 : 1);
+      this.pos[i * 3 + 1] += this.speed[i] * dt * this.dir;
       this.pos[i * 3] += Math.sin(time * 1.3 + this.phase[i]) * dt * 0.6;
-      if (this.pos[i * 3 + 1] > 24) this.respawn(i, false);
+      const y = this.pos[i * 3 + 1];
+      if (y > 24 || y < -8) this.respawn(i, false);
     }
     this.points.geometry.attributes.position.needsUpdate = true;
   }
@@ -237,11 +249,17 @@ export class Stage {
     this.fillA.color.set(theme.fillLight);
     this.fillB.color.set(theme.accent2);
     this.bloom.strength = theme.bloom;
+    this.bloom.threshold = theme.bloomThreshold ?? 0.85;
+    this.renderer.toneMappingExposure = theme.exposure ?? 1.05;
+    const ls = theme.lightScale ?? 1;
+    this.hemi.intensity = 0.7 * ls;
+    this.key.intensity = 1.8 * ls;
+    this.fillA.intensity = this.fillB.intensity = 60 * ls;
     if (this.ambient) {
       this.scene.remove(this.ambient.points);
       this.ambient.dispose();
     }
-    this.ambient = new Ambient(theme.ambientFx, theme.ambientFx === 'embers' ? 0xff7a2a : theme.ambientFx === 'bubbles' ? 0xbff9ff : 0xffffff, this.glowTex);
+    this.ambient = new Ambient(theme.ambientFx, theme.ambientColors, this.glowTex);
     this.scene.add(this.ambient.points);
     this.fitCamera();
   }

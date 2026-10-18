@@ -88,10 +88,38 @@ function arcPoints(c: Vec2, r: number, a0: number, a1: number, n: number): Vec2[
   return pts;
 }
 
+export const FLIPPER_PIVOT: Vec2 = { x: 3.9, y: 5.2 };
+export const FLIPPER_BASE_R = 0.5;
+
+/**
+ * Inlane guide wall for the left side (mirrored for the right). It is raised
+ * off the flipper pivot so its surface is tangent to the flipper's base
+ * circle; otherwise the base pokes out above the guide and a rolling ball
+ * bumps into it at the joint.
+ */
+export function guideLine(mirror: boolean): [Vec2, Vec2] {
+  const s = mirror ? -1 : 1;
+  const end = v(-FLIPPER_PIVOT.x, FLIPPER_PIVOT.y);
+  const from = v(FIELD_LEFT, 10);
+  const len = Math.hypot(end.x - from.x, end.y - from.y);
+  const dx = (end.x - from.x) / len;
+  const dy = (end.y - from.y) / len;
+  const lift = FLIPPER_BASE_R - WALL_R;
+  const b = v(end.x - dy * lift, end.y + dx * lift);
+  // Extend back to the side wall.
+  const t = (FIELD_LEFT - b.x) / dx;
+  const a = v(FIELD_LEFT, b.y + dy * t);
+  return [v(a.x * s, a.y), v(b.x * s, b.y)];
+}
+
 /** Slingshot triangle for the left side; mirrored for the right. */
 function slingTriangle(mirror: boolean): Vec2[] {
   const s = mirror ? -1 : 1;
-  return [v(-7.2 * s, 12.6), v(-7.2 * s, 10.25), v(-5.0 * s, 8.15)];
+  // Moved along with the guide so the inlane keeps its width.
+  const [, gb] = guideLine(false);
+  const ox = gb.x + FLIPPER_PIVOT.x;
+  const oy = gb.y - FLIPPER_PIVOT.y;
+  return [v(-7.2 + ox, 12.6 + oy), v(-7.2 + ox, 10.25 + oy), v(-5.0 + ox, 8.15 + oy)].map((p) => v(p.x * s, p.y));
 }
 
 export function buildLayout(level: LevelDef): TableLayout {
@@ -106,11 +134,11 @@ export function buildLayout(level: LevelDef): TableLayout {
   polyline(world, walls, [v(FIELD_RIGHT, 0.3), v(FIELD_RIGHT, 32.2)]);
 
   // Inlane guides that feed the flippers.
-  polyline(world, walls, [v(FIELD_LEFT, 10), v(-3.9, 5.2)]);
-  polyline(world, walls, [v(FIELD_RIGHT, 10), v(3.9, 5.2)]);
+  polyline(world, walls, guideLine(false));
+  polyline(world, walls, guideLine(true));
   // Drain funnel under the flippers so a ball past them can only go down.
-  polyline(world, walls, [v(-3.9, 5.2), v(-3.9, -1)]);
-  polyline(world, walls, [v(3.9, 5.2), v(3.9, -1)]);
+  polyline(world, walls, [v(-FLIPPER_PIVOT.x, FLIPPER_PIVOT.y), v(-FLIPPER_PIVOT.x, -1)]);
+  polyline(world, walls, [v(FLIPPER_PIVOT.x, FLIPPER_PIVOT.y), v(FLIPPER_PIVOT.x, -1)]);
 
   // Top rollover lane posts.
   for (const x of LANE_POSTS) posts.push(world.add(capsule('post', v(x, LANE_Y0), v(x, LANE_Y1), 0.22, 0.5)));
@@ -119,8 +147,8 @@ export function buildLayout(level: LevelDef): TableLayout {
   for (const pl of level.walls) polyline(world, walls, pl);
   for (const p of level.posts) posts.push(world.add(circle('post', p.pos, p.r, 0.6)));
 
-  const left = world.addFlipper(new Flipper(v(-3.9, 5.2), 3.3, -0.52, 0.5));
-  const right = world.addFlipper(new Flipper(v(3.9, 5.2), 3.3, Math.PI + 0.52, Math.PI - 0.5));
+  const left = world.addFlipper(new Flipper(v(-FLIPPER_PIVOT.x, FLIPPER_PIVOT.y), 3.3, -0.52, 0.5, FLIPPER_BASE_R));
+  const right = world.addFlipper(new Flipper(v(FLIPPER_PIVOT.x, FLIPPER_PIVOT.y), 3.3, Math.PI + 0.52, Math.PI - 0.5, FLIPPER_BASE_R));
 
   const slings: SlingEl[] = [false, true].map((mirror) => {
     const tri = slingTriangle(mirror);
