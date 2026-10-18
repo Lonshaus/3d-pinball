@@ -79,4 +79,4 @@ src/
 
 ## 部署
 
-push 到 `main` 後，GitHub Actions 會自動打包並部署到 GitHub Pages。
+push 到 `master` 後，GitHub Actions 會自動打包並部署到 GitHub Pages。
