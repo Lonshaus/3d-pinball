@@ -39,6 +39,8 @@ export interface Collider {
   onHit?: (hit: HitInfo) => void;
   /** Free-form tag for game logic. */
   tag?: string;
+  /** 0 = playfield, 1+ = ramps / upper decks. Balls only hit colliders on their own layer. */
+  layer?: number;
 }
 
 export interface Ball {
@@ -49,9 +51,19 @@ export interface Ball {
   active: boolean;
   /** Ball is held (e.g. in a saucer) and ignores physics. */
   held: boolean;
+  /** Which layer the ball rolls on (0 = playfield). */
+  layer: number;
+  /** Visual height above the playfield and its vertical speed (for drops). */
+  z: number;
+  zv: number;
+  /** Hidden while travelling through a tunnel. */
+  hidden: boolean;
 }
 
-export const GRAVITY = 52;
+export function newBall(x: number, y: number): Ball {
+  return { x, y, vx: 0, vy: 0, active: true, held: false, layer: 0, z: 0, zv: 0, hidden: false };
+}
+
 export const MAX_SPEED = 95;
 export const SUBSTEP = 1 / 600;
 
@@ -94,6 +106,9 @@ export class Flipper {
     public readonly upAngle: number,
     public readonly baseRadius = 0.5,
     public readonly tipRadius = 0.24,
+    public readonly layer = 0,
+    /** Upswing speed in rad/s. */
+    public readonly power = 26,
   ) {
     this.angle = restAngle;
     this.collider = {
@@ -106,6 +121,7 @@ export class Flipper {
       rb: tipRadius,
       restitution: 0.25,
       enabled: true,
+      layer,
       surfaceVel: (px, py) => ({
         x: -(py - this.pivot.y) * this.angularVel,
         y: (px - this.pivot.x) * this.angularVel,
@@ -120,7 +136,7 @@ export class Flipper {
 
   step(dt: number) {
     const target = this.pressed ? this.upAngle : this.restAngle;
-    const speed = this.pressed ? 26 : 15;
+    const speed = this.pressed ? this.power : 15;
     const diff = target - this.angle;
     const maxStep = speed * dt;
     const delta = Math.abs(diff) <= maxStep ? diff : Math.sign(diff) * maxStep;
@@ -144,6 +160,8 @@ export class World {
   onSubstep?: (dt: number) => void;
   /** Extra acceleration applied to all balls (nudging). */
   nudge = { x: 0, y: 0 };
+  /** Playfield gravity along -y (steeper table = bigger). */
+  gravity = 52;
 
   add(c: Collider) {
     this.colliders.push(c);
@@ -171,7 +189,7 @@ export class World {
     for (const ball of this.balls) {
       if (!ball.active || ball.held) continue;
       ball.vx += this.nudge.x * dt;
-      ball.vy += (this.nudge.y - GRAVITY) * dt;
+      ball.vy += (this.nudge.y - this.gravity) * dt;
       ball.vx *= damping;
       ball.vy *= damping;
       const sp = Math.hypot(ball.vx, ball.vy);
@@ -192,6 +210,7 @@ export class World {
   }
 
   private collide(ball: Ball, c: Collider, fireEvents: boolean) {
+    if ((c.layer ?? 0) !== ball.layer) return;
     const abx = c.bx - c.ax;
     const aby = c.by - c.ay;
     const len2 = abx * abx + aby * aby;
@@ -244,12 +263,16 @@ export class World {
       const bounce = -vn < 2 ? 0 : e;
       ball.vx -= (1 + bounce) * vn * nx;
       ball.vy -= (1 + bounce) * vn * ny;
-      // A little tangential friction.
-      const tvx = rvx - vn * nx;
-      const tvy = rvy - vn * ny;
-      const fr = c.kind === 'flipper' ? 0.03 : 0.01;
-      ball.vx -= tvx * fr;
-      ball.vy -= tvy * fr;
+      // A little tangential friction on real impacts. Resting contact (a ball
+      // rolling along a wall) gets none, otherwise it would be applied every
+      // substep and act like a brake.
+      if (-vn > 2) {
+        const tvx = rvx - vn * nx;
+        const tvy = rvy - vn * ny;
+        const fr = c.kind === 'flipper' ? 0.03 : 0.01;
+        ball.vx -= tvx * fr;
+        ball.vy -= tvy * fr;
+      }
     }
     if (c.kick !== undefined && -vn > 1.2) {
       // Real kickers are never perfectly consistent; the jitter also breaks
@@ -274,7 +297,7 @@ export class World {
       if (!a.active || a.held) continue;
       for (let j = i + 1; j < bs.length; j++) {
         const b = bs[j];
-        if (!b.active || b.held) continue;
+        if (!b.active || b.held || b.layer !== a.layer) continue;
         const dx = b.x - a.x;
         const dy = b.y - a.y;
         const d = Math.hypot(dx, dy);

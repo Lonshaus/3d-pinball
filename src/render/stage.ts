@@ -238,7 +238,7 @@ export class Stage {
     this.view = view;
     this.scene.add(view.root);
     // The ball gets the full-strength environment so it reads as polished chrome.
-    const ballMat = view.ball.material as THREE.MeshStandardMaterial;
+    const ballMat = view.ballMaterial;
     ballMat.envMap = this.scene.environment;
     ballMat.envMapIntensity = 1.6;
     this.scene.background = new THREE.Color(theme.background);
@@ -264,9 +264,9 @@ export class Stage {
     this.fitCamera();
   }
 
-  burst(x: number, y: number, color: number, n = 16, speed = 8) {
+  burst(x: number, y: number, color: number, n = 16, speed = 8, h = 0) {
     if (!this.view) return;
-    this.sparks.burst(this.view.toWorld(x, y, 0.8), new THREE.Color(color), n, speed);
+    this.sparks.burst(this.view.toWorld(x, y, 0.8 + h), new THREE.Color(color), n, speed);
   }
 
   addShake(amount: number) {
@@ -299,10 +299,10 @@ export class Stage {
     if (!this.view) return;
     const aspect = this.camera.aspect;
     const tall = THREE.MathUtils.clamp((1.3 - aspect) / 0.75, 0, 1);
-    const elev = THREE.MathUtils.degToRad(THREE.MathUtils.lerp(44, 66, tall));
+    const elev = THREE.MathUtils.degToRad(THREE.MathUtils.lerp(40, 64, tall));
     const { x0, x1, y0, y1 } = FLOOR_BOUNDS;
     const pts: THREE.Vector3[] = [];
-    for (const x of [x0 - 1, x1 + 1]) for (const y of [y0 - 0.6, y1 + 0.6]) for (const h of [0, 1.7]) pts.push(this.view.toWorld(x, y, h));
+    for (const x of [x0 - 1, x1 + 1]) for (const y of [y0 - 0.6, y1 + 0.6]) for (const h of [0, 2]) pts.push(this.view.toWorld(x, y, h));
     const center = this.view.toWorld((x0 + x1) / 2, (y0 + y1) / 2 - 1.5, 0);
     const dir = new THREE.Vector3(0, Math.sin(elev), Math.cos(elev));
     // HUD lives at the top of the screen; leave space for it.

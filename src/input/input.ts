@@ -18,11 +18,13 @@ export class Input {
   private held = { L: 0, R: 0, P: 0 };
   private pointers = new Map<number, Zone>();
   private keys = new Set<string>();
+  private lastShake = 0;
 
   constructor(
     private readonly h: InputHandlers,
     touchLayer: HTMLElement,
     launchButton: HTMLElement,
+    nudgeButton: HTMLElement,
   ) {
     window.addEventListener('keydown', (e) => this.onKey(e, true));
     window.addEventListener('keyup', (e) => this.onKey(e, false));
@@ -48,6 +50,14 @@ export class Input {
       e.stopPropagation();
       down('P')(e);
     });
+    nudgeButton.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (!this.enabled) return;
+      this.h.interact();
+      this.h.nudge(0);
+    });
+    window.addEventListener('devicemotion', (e) => this.onMotion(e));
     for (const el of [touchLayer, launchButton]) {
       el.addEventListener('pointerup', up);
       el.addEventListener('pointercancel', up);
@@ -80,6 +90,24 @@ export class Input {
       else if (e.code === 'KeyN' || e.code === 'Period') this.h.nudge(1);
       else if (e.code === 'KeyC') this.h.nudge(0);
     }
+  }
+
+  /** Shaking the phone nudges the table toward the side it was jerked. */
+  private onMotion(e: DeviceMotionEvent) {
+    if (!this.enabled) return;
+    const a = e.acceleration;
+    if (!a || a.x === null || a.y === null) return;
+    const mag = Math.hypot(a.x, a.y, a.z ?? 0);
+    const now = performance.now();
+    if (mag < 15 || now - this.lastShake < 600) return;
+    this.lastShake = now;
+    this.h.nudge(Math.abs(a.x) > 6 ? Math.sign(a.x) : 0);
+  }
+
+  /** iOS only delivers motion events after the page asks, from a tap. */
+  static requestMotionPermission() {
+    const DME = (window as unknown as { DeviceMotionEvent?: { requestPermission?: () => Promise<string> } }).DeviceMotionEvent;
+    if (DME?.requestPermission) DME.requestPermission().catch(() => undefined);
   }
 
   private press(z: Zone, isDown: boolean) {

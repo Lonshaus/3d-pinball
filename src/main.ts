@@ -5,7 +5,6 @@ import { Input } from './input/input';
 import { LEVELS, type LevelDef } from './levels/levels';
 import { Stage } from './render/stage';
 import { TableView } from './render/tableView';
-import { FIELD_RIGHT } from './table/layout';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -49,6 +48,7 @@ const hud = {
   balls: $('hud-balls'),
   goalBar: $('hud-goal-bar'),
   goalText: $('hud-goal-text'),
+  status: $('hud-status'),
   mult: $('hud-mult'),
 };
 const launchBtn = $('btn-launch');
@@ -66,6 +66,7 @@ const input = new Input(
   },
   $('touch'),
   launchBtn,
+  $('btn-nudge'),
 );
 
 function applyThemeCss(level: LevelDef) {
@@ -102,7 +103,9 @@ function startLevel(index: number) {
   $('result').classList.add('hidden');
   $('pause').classList.add('hidden');
   hud.root.classList.remove('hidden');
+  $('btn-nudge').classList.toggle('hidden', !isTouch);
   if (isTouch) {
+    Input.requestMotionPermission();
     const hints = $('touch-hints');
     hints.classList.remove('hidden');
     // Restart the fade animation.
@@ -110,7 +113,7 @@ function startLevel(index: number) {
     void hints.offsetWidth;
     hints.style.animation = '';
   }
-  showToast(`${LEVELS[index].name}　目標 ${LEVELS[index].goal.toLocaleString()}`, false);
+  showToast(`${LEVELS[index].name}　任務：${game.mission.label}`, false);
 }
 
 function showMenu() {
@@ -120,6 +123,7 @@ function showMenu() {
   paused = false;
   hud.root.classList.add('hidden');
   launchBtn.classList.add('hidden');
+  $('btn-nudge').classList.add('hidden');
   $('touch-hints').classList.add('hidden');
   $('pause').classList.add('hidden');
   $('result').classList.add('hidden');
@@ -140,7 +144,8 @@ function buildLevelList() {
     btn.innerHTML = `
       <div class="num">${i + 1}</div>
       <div><div class="name">${lv.name}</div><div class="sub">${lv.subtitle}</div></div>
-      <div class="meta">目標 ${lv.goal.toLocaleString()}<br/>最高 ${(save.best[i] ?? 0).toLocaleString()}</div>`;
+      <div class="meta"><span class="stars">${'★'.repeat(lv.difficulty.stars)}${'☆'.repeat(5 - lv.difficulty.stars)}</span><br/>最高 ${(save.best[i] ?? 0).toLocaleString()}</div>
+      <div class="blurb">${lv.blurb}</div>`;
     btn.addEventListener('click', () => {
       sfx.unlock();
       startLevel(i);
@@ -181,8 +186,8 @@ function showToast(text: string, big = false) {
   toastTimer = window.setTimeout(() => toast.classList.remove('show'), 1700);
 }
 
-function popup(points: number, x: number, y: number) {
-  const p = stage.project(x, y, 1.2);
+function popup(points: number, x: number, y: number, h = 0) {
+  const p = stage.project(x, y, 1.2 + h);
   const el = document.createElement('div');
   el.className = 'popup';
   el.textContent = `+${points.toLocaleString()}`;
@@ -192,7 +197,7 @@ function popup(points: number, x: number, y: number) {
   setTimeout(() => el.remove(), 900);
 }
 
-function finish(cleared: boolean) {
+function finish() {
   input.releaseAll();
   input.enabled = false;
   const i = levelIndex;
@@ -200,21 +205,16 @@ function finish(cleared: boolean) {
   if (isNewBest) save.best[i] = game.score;
   persist();
   launchBtn.classList.add('hidden');
-  setTimeout(
-    () => {
-      $('result-title').textContent = cleared ? '🎉 關卡完成！' : '遊戲結束';
-      $('result-score').textContent = game.score.toLocaleString();
-      $('result-best').textContent = isNewBest ? '★ 新紀錄！' : `最高分 ${(save.best[i] ?? 0).toLocaleString()}`;
-      const next = $('btn-next');
-      const hasNext = cleared && i + 1 < LEVELS.length;
-      next.classList.toggle('hidden', !hasNext && cleared);
-      next.textContent = hasNext ? `下一關：${LEVELS[i + 1].name}` : '再挑戰一次';
-      next.onclick = () => startLevel(hasNext ? i + 1 : i);
-      $('btn-retry').classList.toggle('hidden', !cleared);
-      $('result').classList.remove('hidden');
-    },
-    cleared ? 1200 : 600,
-  );
+  setTimeout(() => {
+    $('result-title').textContent = isNewBest ? '🎉 新紀錄！' : '遊戲結束';
+    $('result-score').textContent = game.score.toLocaleString();
+    $('result-best').textContent = `完成任務 ${game.missionsDone} 個　最高分 ${(save.best[i] ?? 0).toLocaleString()}`;
+    const next = $('btn-next');
+    const n = (i + 1) % LEVELS.length;
+    next.textContent = `換下一關：${LEVELS[n].name}`;
+    next.onclick = () => startLevel(n);
+    $('result').classList.remove('hidden');
+  }, 600);
 }
 
 function onGameEvent(e: GameEvent) {
@@ -275,7 +275,6 @@ function onGameEvent(e: GameEvent) {
       sfx.saved();
       break;
     case 'ready':
-      view.resetTrail();
       renderBalls();
       break;
     case 'nudge':
@@ -287,19 +286,41 @@ function onGameEvent(e: GameEvent) {
       stage.addShake(0.8);
       break;
     case 'score':
-      popup(e.points, e.x, e.y);
+      popup(e.points, e.x, e.y, e.h);
+      break;
+    case 'ramp': {
+      const r = t.ramps[e.index];
+      const end = r.def.points[r.def.points.length - 1];
+      sfx.ramp();
+      stage.burst(end.x, end.y, theme.accent, 26, 9, r.def.heights[r.def.heights.length - 1]);
+      showToast(`${r.def.name}！ +1500`);
+      break;
+    }
+    case 'deck':
+      sfx.ramp();
+      stage.addShake(0.25);
+      break;
+    case 'spinner':
+      sfx.spinner();
+      break;
+    case 'kickback':
+      sfx.kickback();
+      stage.addShake(0.4);
+      break;
+    case 'multiball':
+      sfx.multiball();
+      stage.addShake(0.6);
+      break;
+    case 'mission':
+      if (e.done) sfx.mission();
+      else sfx.lane();
       break;
     case 'message':
       showToast(e.text, e.big);
       break;
-    case 'clear':
-      sfx.clear();
-      showToast('目標達成！', true);
-      finish(true);
-      break;
     case 'over':
       sfx.over();
-      finish(false);
+      finish();
       break;
   }
 }
@@ -330,7 +351,7 @@ function frame(now: number) {
   const time = now / 1000;
 
   if (!inMenu && !paused) game.update(dt);
-  view.update(time);
+  view.update(time, dt);
   stage.render(dt, time);
 
   if (!inMenu) {
@@ -338,12 +359,21 @@ function frame(now: number) {
     shownScore += (game.score - shownScore) * Math.min(1, dt * 12);
     if (Math.abs(game.score - shownScore) < 1) shownScore = game.score;
     hud.score.textContent = Math.round(shownScore).toLocaleString();
-    const pct = Math.min(1, game.score / game.level.goal);
-    hud.goalBar.style.width = `${pct * 100}%`;
-    hud.goalText.textContent = `目標 ${game.level.goal.toLocaleString()}`;
+    // Current (random) mission and its progress.
+    const m = game.mission;
+    hud.goalBar.style.width = `${(game.missionCount / m.count) * 100}%`;
+    hud.goalText.textContent = `任務：${m.label}${m.count > 1 ? `（${game.missionCount}/${m.count}）` : ''}　已完成 ${game.missionsDone}`;
+    const st: string[] = [];
+    const t = game.table;
+    if (t.kickback) st.push(t.kickback.lit ? '🟢 救球彈簧' : '⚪ 救球彈簧');
+    const locked = t.saucers.reduce((n, s) => n + s.locked.length, 0);
+    if (t.saucers.some((s) => s.def.lock)) st.push(`🔒 鎖球 ${locked}/1`);
+    const free = game.balls.filter((b) => b.active && !t.saucers.some((s) => s.locked.includes(b))).length;
+    if (free > 1) st.push(`🔵 多球 ×${free}`);
+    if (game.ballSave > 0 && game.phase === 'playing') st.push(`🛟 救球 ${Math.ceil(game.ballSave)}s`);
+    hud.status.textContent = st.join('　');
     hud.mult.textContent = `×${game.multiplier}`;
-    const b = game.ball;
-    const inLane = b.active && !b.held && b.x > FIELD_RIGHT && b.y < 4;
+    const inLane = !!game.laneBall;
     launchBtn.classList.toggle('hidden', !(isTouch && inLane && !paused) && !game.charging);
     launchFill.style.height = `${game.plungerCharge * 100}%`;
   } else {

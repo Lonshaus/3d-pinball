@@ -115,8 +115,21 @@ export class Sfx {
   tilt() {
     this.tone(110, 0.8, 'sawtooth', 0.25, 0.5);
   }
-  clear() {
-    [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) => this.tone(f, 0.22, 'square', 0.12, 1, i * 0.11));
+  ramp() {
+    [392, 523, 659, 784, 1046].forEach((f, i) => this.tone(f, 0.12, 'sawtooth', 0.1, 1.05, i * 0.05));
+  }
+  spinner() {
+    this.tone(1800 + Math.random() * 300, 0.03, 'square', 0.05, 0.9);
+  }
+  kickback() {
+    this.hiss(0.18, 0.6, 600);
+    this.tone(120, 0.25, 'square', 0.2, 3);
+  }
+  multiball() {
+    [523, 659, 784, 1046, 1318, 1568].forEach((f, i) => this.tone(f, 0.18, 'square', 0.13, 1, i * 0.07));
+  }
+  mission() {
+    [659, 880, 1175, 1760].forEach((f, i) => this.tone(f, 0.2, 'triangle', 0.18, 1, i * 0.08));
   }
   over() {
     [392, 330, 262, 196, 131].forEach((f, i) => this.tone(f, 0.35, 'triangle', 0.18, 0.95, i * 0.2));

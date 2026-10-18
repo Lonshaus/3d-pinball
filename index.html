@@ -22,6 +22,7 @@
         <div class="hud-center">
           <div id="hud-score" class="hud-score">0</div>
           <div class="hud-goal"><div id="hud-goal-bar"></div><span id="hud-goal-text"></span></div>
+          <div id="hud-status" class="hud-status"></div>
         </div>
         <div class="hud-right">
           <div id="hud-mult" class="hud-mult">×1</div>
@@ -34,6 +35,7 @@
         <div class="hint left">點左半邊<br />左擋板</div>
         <div class="hint right">點右半邊<br />右擋板</div>
       </div>
+      <button id="btn-nudge" class="hidden" aria-label="搖台">搖台</button>
       <button id="btn-launch" class="hidden"><span class="launch-fill"></span><span class="launch-label">按住蓄力<br />放開發射</span></button>
       <div id="toast"></div>
       <div id="popups"></div>
@@ -41,7 +43,7 @@
       <section id="menu" class="overlay">
         <div class="panel menu-panel">
           <h1 class="logo"><span>3D</span> 彈珠台</h1>
-          <p class="tagline">六種風格任選，挑戰目標分數</p>
+          <p class="tagline">六種風格任選，完成隨機任務拿高分</p>
           <div id="level-list" class="level-list"></div>
           <details class="help">
             <summary>操作說明</summary>
@@ -51,9 +53,13 @@
               <div>右擋板：<kbd>/</kbd> / <kbd>→</kbd> / <kbd>右 Shift</kbd></div>
               <div>發射：按住 <kbd>空白鍵</kbd> 蓄力，放開發射</div>
               <div>搖台：<kbd>X</kbd> 左推 <kbd>C</kbd> 上推 <kbd>N</kbd> 右推（太用力會 TILT）</div>
+              <div>上層平台的小擋板跟著同一側的擋板鍵一起動</div>
               <div>暫停：<kbd>Esc</kbd> / <kbd>P</kbd></div>
               <div><b>手機 / 平板</b></div>
               <div>點螢幕左半邊、右半邊控制擋板，按住右下角按鈕蓄力發射</div>
+              <div>搖台：按下方中間的「搖台」鈕，或直接搖動手機；暫停：右上角 ⏸</div>
+              <div><b>玩法</b></div>
+              <div>畫面上方會隨機出一個任務，完成就拿獎勵分（越後面越多），再換下一個；三顆球用完結束，拚最高分。坡道要打得夠準夠強才上得去；洞口有一般彈出、隧道、隨機傳送、鎖球（再進一顆開多球）、累積獎勵等不同種類。出球道（兩側最外的通道）會直接漏球，亮燈時左側救球彈簧會把球彈回來。</div>
             </div>
           </details>
         </div>
@@ -73,8 +79,8 @@
           <h2 id="result-title"></h2>
           <div class="result-score" id="result-score"></div>
           <div class="result-best" id="result-best"></div>
-          <button class="btn primary" id="btn-next"></button>
-          <button class="btn" id="btn-retry">再玩一次</button>
+          <button class="btn primary" id="btn-retry">再玩一次</button>
+          <button class="btn" id="btn-next"></button>
           <button class="btn" id="btn-menu2">回到選單</button>
         </div>
       </section>

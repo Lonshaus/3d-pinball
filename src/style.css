@@ -125,9 +125,9 @@ body {
 .hud-goal {
   position: relative;
   margin-top: 6px;
-  height: 16px;
-  min-width: 150px;
-  border-radius: 8px;
+  height: 18px;
+  min-width: 220px;
+  border-radius: 9px;
   background: rgba(255, 255, 255, 0.12);
   overflow: hidden;
 }
@@ -143,8 +143,18 @@ body {
 #hud-goal-text {
   position: relative;
   font-size: 11px;
-  line-height: 16px;
+  line-height: 18px;
+  padding: 0 8px;
+  white-space: nowrap;
   font-weight: 700;
+}
+
+.hud-status {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  min-height: 14px;
 }
 
 .hud-mult {
@@ -192,6 +202,27 @@ body {
   to {
     opacity: 0;
   }
+}
+
+#btn-nudge {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--safe-bottom) + 14px);
+  transform: translateX(-50%);
+  width: 72px;
+  height: 44px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  touch-action: none;
+}
+
+#btn-nudge:active {
+  background: var(--accent);
 }
 
 #btn-launch {
@@ -413,6 +444,18 @@ h2 {
   opacity: 0.8;
 }
 
+.level-card .stars {
+  color: #ffe14d;
+  letter-spacing: 1px;
+}
+
+.level-card .blurb {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  opacity: 0.85;
+  line-height: 1.45;
+}
+
 .level-card .meta {
   font-size: 12px;
   text-align: right;
@@ -491,14 +534,39 @@ kbd {
   pointer-events: none;
 }
 
+@media (pointer: coarse) {
+  #btn-pause {
+    width: 46px;
+    height: 46px;
+    font-size: 20px;
+  }
+}
+
 @media (max-width: 520px) {
   #hud {
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     padding-left: 10px;
     padding-right: 10px;
   }
+  .hud-level {
+    font-size: 12px;
+    white-space: nowrap;
+  }
   .hud-center {
-    min-width: 120px;
+    min-width: 0;
+  }
+  .hud-goal {
+    min-width: 0;
+  }
+  #hud-goal-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hud-status {
+    font-size: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .icon-btn {
     width: 34px;
