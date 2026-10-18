@@ -192,7 +192,7 @@ export class Stage {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isTouch ? 1.75 : 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.toneMappingExposure = 0.75;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     container.appendChild(this.renderer.domElement);
@@ -220,7 +220,7 @@ export class Stage {
 
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
-    this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.5, 0.4, 0.85);
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.4, 0.35, 0.92);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
 
@@ -248,13 +248,14 @@ export class Stage {
     this.key.color.set(theme.keyLight);
     this.fillA.color.set(theme.fillLight);
     this.fillB.color.set(theme.accent2);
-    this.bloom.strength = theme.bloom;
-    this.bloom.threshold = theme.bloomThreshold ?? 0.85;
-    this.renderer.toneMappingExposure = theme.exposure ?? 1.05;
+    // Bloom is kept subtle so the neon reads as glow rather than haze.
+    this.bloom.strength = theme.bloom * 0.6;
+    this.bloom.threshold = theme.bloomThreshold ?? 0.92;
+    this.renderer.toneMappingExposure = theme.exposure ?? 0.75;
     const ls = theme.lightScale ?? 1;
-    this.hemi.intensity = 0.7 * ls;
-    this.key.intensity = 1.8 * ls;
-    this.fillA.intensity = this.fillB.intensity = 60 * ls;
+    this.hemi.intensity = 0.55 * ls;
+    this.key.intensity = 1.5 * ls;
+    this.fillA.intensity = this.fillB.intensity = 40 * ls;
     if (this.ambient) {
       this.scene.remove(this.ambient.points);
       this.ambient.dispose();

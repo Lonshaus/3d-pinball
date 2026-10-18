@@ -63,11 +63,14 @@ function std(color: number, opts: THREE.MeshStandardMaterialParameters = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: 0.45, metalness: 0.2, ...opts });
 }
 
+/** Global scale for every emissive (glowing) part of the table. */
+const GLOW = 0.5;
+
 function glow(color: number, intensity = 1.5, opts: THREE.MeshStandardMaterialParameters = {}) {
   return new THREE.MeshStandardMaterial({
     color,
     emissive: color,
-    emissiveIntensity: intensity,
+    emissiveIntensity: intensity * GLOW,
     roughness: 0.35,
     metalness: 0,
     ...opts,
@@ -153,7 +156,7 @@ export class TableView {
   private balls = new Map<Ball, BallVisual>();
   private ballGeo = new THREE.SphereGeometry(BALL_RADIUS, 40, 24);
   private ballMat = new THREE.MeshStandardMaterial({ color: 0xf2f4f8, metalness: 1, roughness: 0.08 });
-  private haloMat = new THREE.SpriteMaterial({ map: makeGlowTexture(), color: 0xffffff, transparent: true, opacity: 0.4, depthWrite: false, blending: THREE.AdditiveBlending });
+  private haloMat = new THREE.SpriteMaterial({ map: makeGlowTexture(), color: 0xffffff, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending });
   private disposables: { dispose(): void }[] = [];
 
   constructor(
@@ -237,7 +240,7 @@ export class TableView {
         map: tex,
         emissive: 0xffffff,
         emissiveMap: tex,
-        emissiveIntensity: theme.floorGlow ?? 0.22,
+        emissiveIntensity: theme.floorGlow ?? 0.14,
         roughness: 0.32,
         metalness: 0.15,
       }),
@@ -739,16 +742,16 @@ export class TableView {
 
     for (const f of this.flashables) {
       const v = f.get();
-      f.mat.emissiveIntensity = f.base + f.boost * v;
+      f.mat.emissiveIntensity = (f.base + f.boost * v) * GLOW;
       if (f.mesh) f.mesh.scale.setScalar(1 + v * 0.12);
     }
     for (const tg of this.targets) tg.obj.position.y = tg.base - tg.drop() * 0.85;
     for (const l of this.laneLights) {
-      l.mat.emissiveIntensity = l.lit() ? 2.6 + Math.sin(time * 8) * 0.6 : 0.25;
+      l.mat.emissiveIntensity = (l.lit() ? 2.6 + Math.sin(time * 8) * 0.6 : 0.25) * GLOW;
     }
     for (const sp of this.spinners) sp.pivot.rotation.z = sp.el.angle;
     for (const s of this.spinning) s.obj.rotation.y += s.speed * dt;
-    for (const l of this.locks) l.mat.emissiveIntensity = l.el.locked.length ? 2.5 + Math.sin(time * 10) * 1.2 : 0.3;
+    for (const l of this.locks) l.mat.emissiveIntensity = (l.el.locked.length ? 2.5 + Math.sin(time * 10) * 1.2 : 0.3) * GLOW;
     for (const b of this.beams) {
       const on = b.el.ball && b.el.holdTimer > 0;
       const m = b.obj.material as THREE.MeshBasicMaterial;
@@ -756,7 +759,7 @@ export class TableView {
     }
     if (this.kickback) {
       const k = this.kickback;
-      k.mat.emissiveIntensity = k.el.lit ? 2.2 + Math.sin(time * 6) * 0.8 : 0.15;
+      k.mat.emissiveIntensity = (k.el.lit ? 2.2 + Math.sin(time * 6) * 0.8 : 0.15) * GLOW;
       k.head.position.copy(p3((k.el.x0 + k.el.x1) / 2, k.y + k.el.fire * 1.2, 0.75));
     }
 

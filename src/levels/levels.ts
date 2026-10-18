@@ -355,8 +355,8 @@ const THEME3: Theme = {
 };
 
 const THEME4: Theme = {
-  background: 0xffd6ec,
-  fog: 0xffe4f2,
+  background: 0xc98fb0,
+  fog: 0xd9a3c1,
   floorStyle: 'candy',
   floorBase: '#ffa8d0',
   floorAccent: '#ff5fa2',
@@ -378,8 +378,8 @@ const THEME4: Theme = {
   card: ['#ff5fa2', '#a77bff'],
   floorGlow: 0.04,
   bloomThreshold: 1.2,
-  exposure: 0.78,
-  lightScale: 0.55,
+  exposure: 0.6,
+  lightScale: 0.45,
   pitch: 1.25,
   bloom: 0.25,
 };
