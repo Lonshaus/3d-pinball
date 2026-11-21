@@ -1,95 +1,88 @@
-# 3D 彈珠台
+# 3D Pinball
 
-用 Three.js + TypeScript + Vite 製作的立體彈珠台，支援電腦、手機與平板。
+English | [繁體中文](README.ZH_TW.md)
 
-線上遊玩：https://lonshaus.github.io/3d-pinball/
+A 3D pinball game built with Three.js, TypeScript and Vite. Plays on desktop, phones and tablets.
 
-## 安裝成 App（PWA）
+Play online: https://lonshaus.github.io/3d-pinball/
 
-可以加到主畫面，以全螢幕開啟，第一次開啟後沒有網路也能玩。
-遊戲選單標題下方有「📲 安裝到主畫面」按鈕：支援的瀏覽器會直接跳出安裝視窗，其他情況會展開對應裝置的安裝步驟。
+## Install as an app (PWA)
 
-- **Android / 桌機 Chrome、Edge**：開啟網站後按「安裝」（網址列右側的安裝圖示，或瀏覽器選單裡的「安裝應用程式」）。
-- **iPhone / iPad**：用 Safari 開啟，按「分享」→「加入主畫面」。
+The game can be added to your home screen. It then opens full screen and, after the first launch, works without an internet connection.
+The "📲 安裝到主畫面" (Add to Home Screen) button under the menu title opens the browser's install prompt where one is available, and otherwise shows the install steps for your device.
 
-推出新版本後，App 會在背景自動更新，下次開啟就是新版。
+- **Android / desktop Chrome or Edge**: open the site and choose "Install" (the install icon at the right of the address bar, or "Install app" in the browser menu).
+- **iPhone / iPad**: open the site in Safari, tap "Share", then "Add to Home Screen".
 
-## 開發
+When a new version is released, the app updates itself in the background and the next launch uses it.
 
-```bash
-npm install
-npm run dev      # 開發伺服器（--host，同網段手機也能連）
-npm run build    # 型別檢查 + 打包到 dist/
-npm run preview  # 預覽打包結果
-```
+## Controls
 
-## 操作
-
-| 動作 | 電腦 | 手機 / 平板 |
+| Action | Desktop | Phone / tablet |
 |---|---|---|
-| 左擋板 | `Z` / `←` / 左 Shift | 點螢幕左半邊 |
-| 右擋板 | `/` / `→` / 右 Shift | 點螢幕右半邊 |
-| 發射 | 按住空白鍵蓄力，放開發射 | 按住右下角按鈕 |
-| 搖台 | `X` 左 / `C` 上 / `N` 右 | 下方「搖台」鈕，或直接搖動手機 |
-| 暫停 | `Esc` / `P` | 右上角 ⏸ |
+| Left flipper | `Z` / `←` / Left Shift | Tap the left half of the screen |
+| Right flipper | `/` / `→` / Right Shift | Tap the right half of the screen |
+| Launch | Hold Space to charge, release to launch | Hold the button at the bottom right |
+| Nudge | `X` left / `C` up / `N` right | The "搖台" (Nudge) button at the bottom, or shake the phone |
+| Pause | `Esc` / `P` | ⏸ at the top right |
 
-上層平台的小擋板跟著同一側的擋板鍵一起動。搖台太多次會 TILT，擋板失靈到這顆球結束。
+The mini flipper on an upper deck moves with the flipper key on the same side. Nudging too often causes a TILT: the flippers stop working until that ball drains.
 
-## 玩法
+## How to play
 
-- 畫面上方會從該關的任務池**隨機**出一個任務，完成後拿獎勵分（越後面的任務獎勵越高），接著換下一個。
-- 每完成幾個任務會開啟**多球**（最多三顆同時在場），並重新點亮救球彈簧。
-- 三顆球用完遊戲結束，每關各自記錄最高分。
+- A mission is drawn **at random** from the table's mission pool and shown at the top of the screen. Completing it pays a bonus (later missions pay more), and a new one is drawn.
+- Every few completed missions start a **multiball** (up to three balls in play) and relight the kickback.
+- The game ends when all three balls are lost. Each table keeps its own high score.
 
-## 檯面元素
+## Table features
 
-| 元素 | 說明 |
+| Feature | Description |
 |---|---|
-| 坡道 | 立體軌道，球要打得夠準、夠強才上得去，力道不夠會滑回來；有的坡道彼此立體交叉 |
-| 上層平台 | 架高的第二層，有自己的小擋板和落靶，從出口坡道回到主檯面 |
-| 一般彈出洞 | 球掉進去、停一下再從原處彈出 |
-| 隧道 / 山洞 | 球從地下穿過，從檯面另一處冒出來 |
-| 傳送門 | 隨機從幾個出口之一噴出 |
-| 鎖球洞 | 鎖住第一顆球並補新球，再打進一顆就一起釋放成多球 |
-| 累積獎勵洞 | 把球留住幾秒，期間持續加分 |
-| 旋轉閘 | 球穿過時轉動，每半圈加分 |
-| 出球道 / 救球彈簧 | 兩側最外側通道會直接漏球；左側救球彈簧亮燈時會把球彈回來 |
-| 彈射柱、彈弓、落靶、頂部滾道 | 頂部三條滾道全亮可提高倍率（按擋板可切換亮燈） |
+| Ramps | 3D tracks that take an accurate, strong shot; a weak one rolls back down. Some ramps cross over each other |
+| Upper decks | A raised second level with its own mini flipper and drop targets; an exit ramp returns the ball to the main table |
+| Kickout holes | The ball drops in, waits a moment and is kicked back out where it went in |
+| Tunnels / caves | The ball travels underground and comes out somewhere else on the table |
+| Teleporters | The ball comes out of one of several exits at random |
+| Ball locks | Locks the first ball and serves a new one; shooting another ball in releases both as a multiball |
+| Bonus holes | Holds the ball for a few seconds while the score keeps climbing |
+| Spinners | Spin when the ball passes through, scoring every half turn |
+| Outlanes / kickback | The outermost lanes on each side drain the ball; when lit, the left kickback fires it back into play |
+| Bumpers, slingshots, drop targets, top lanes | Lighting all three top lanes raises the score multiplier (the flippers rotate which lanes are lit) |
 
-## 關卡
+## Tables
 
-| # | 關卡 | 難度 | 主要結構 |
+| # | Table | Difficulty | Main features |
 |---|---|---|---|
-| 1 | 霓虹都市 | ★ | 環繞坡道、旋轉閘、累積獎勵洞；擋板最長、救球 10 秒、沒有出球道 |
-| 2 | 深海秘境 | ★★ | 坡道直通海底洞穴（隧道）、珍珠蚌殼鎖球 |
-| 3 | 熔岩火山 | ★★★ | 兩條立體交叉坡道、兩個彈出洞、出球道 + 救球彈簧 |
-| 4 | 台灣夜市 | ★★★ | 夾娃娃機上層平台（有小擋板）、抽獎機傳送門、旋轉閘 |
-| 5 | 糖果樂園 | ★★★★ | 彩虹坡道、巧克力隧道、棉花糖累積獎勵洞、兩個旋轉閘 |
-| 6 | 星際太空 | ★★★★★ | 太空站上層平台、隨機蟲洞、黑洞鎖球；出球道最寬、沒有救球 |
+| 1 | Neon City | ★ | Orbit ramp, spinner, bonus hole; longest flippers, 10-second ball save, no outlanes |
+| 2 | Deep Sea | ★★ | Ramp straight into an undersea cave (tunnel), pearl-clam ball lock |
+| 3 | Volcano | ★★★ | Two crossing 3D ramps, two kickout holes, outlanes with a kickback |
+| 4 | Night Market | ★★★ | Claw-machine upper deck with its own flipper, lottery-machine teleporter, spinner |
+| 5 | Candy Land | ★★★★ | Rainbow ramp, chocolate tunnel, cotton-candy bonus hole, two spinners |
+| 6 | Deep Space | ★★★★★ | Space-station upper deck, random wormhole, black-hole ball lock; widest outlanes, no ball save |
 
-難度由檯面傾斜（球速）、擋板長度、出球道寬度、救球時間與彈射力道共同決定。
+Difficulty comes from the table's slope (ball speed), flipper length, outlane width, ball-save time and bumper strength.
 
-## 架構
+## Architecture
 
 ```
 src/
-├─ physics/world.ts     # 專用 2D 彈珠物理（膠囊碰撞、擋板、600Hz 子步、分層碰撞）
-├─ table/layout.ts      # 檯面幾何：導軌、出球道、坡道、平台、旋轉閘（純邏輯，可在 Node 測試）
-├─ levels/levels.ts     # 關卡、主題、難度與任務池設定
-├─ game/game.ts         # 規則：坡道/平台高度、洞口、多球、任務、救球、搖台
-├─ render/              # Three.js 場景、檯面與元件模型、程序化貼圖、特效
-├─ input/input.ts       # 鍵盤、觸控、搖動手機
-├─ audio/sfx.ts         # Web Audio 合成音效
-└─ main.ts              # 介面與主迴圈
-public/icons/           # App 圖示（PWA）
+├─ physics/world.ts     # Purpose-built 2D pinball physics (capsule collisions, flippers, 600 Hz substeps, layered collisions)
+├─ table/layout.ts      # Table geometry: guides, outlanes, ramps, decks, spinners (pure logic, testable in Node)
+├─ levels/levels.ts     # Tables, themes, difficulty and mission pools
+├─ game/game.ts         # Rules: ramp/deck heights, holes, multiball, missions, ball save, nudging
+├─ render/              # Three.js scene, table and part models, procedural textures, effects
+├─ input/input.ts       # Keyboard, touch, phone shaking
+├─ audio/sfx.ts         # Synthesized Web Audio sound effects
+└─ main.ts              # UI and main loop
+public/icons/           # App icons (PWA)
 ```
 
-PWA 由 `vite-plugin-pwa` 產生 manifest 與 service worker（設定在 `vite.config.ts`），會預先快取整個遊戲。
+The PWA manifest and service worker are generated by `vite-plugin-pwa` (configured in `vite.config.ts`) and precache the whole game.
 
-物理在檯面平面上以 2D 計算，畫面以 3D 呈現（檯面傾斜 6.5°）。坡道與上層平台用「層」來處理：
-球只會撞到同一層的東西，所以主檯面的球能從坡道底下穿過；在坡道上時依軌道高度計算爬坡減速，
-從坡道末端離開時落回主檯面。
+Physics runs in 2D on the plane of the playfield, and the result is drawn in 3D (the table is tilted 6.5°). Ramps and upper decks are handled as "layers":
+a ball only collides with things on its own layer, so balls on the main table can roll underneath a ramp. On a ramp the ball slows down as the track climbs,
+and it drops back onto the main table when it leaves the end of the ramp.
 
-## 部署
+## License
 
-push 到 `master` 後，GitHub Actions 會自動打包並部署到 GitHub Pages。
+This project is licensed under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0).
